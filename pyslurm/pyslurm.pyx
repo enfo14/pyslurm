@@ -5326,6 +5326,108 @@ cdef class qos:
 
         self._QOSDict = Q_dict
 
+
+#
+# acct Class (sacctmgr)
+#
+
+
+cdef class acct:
+    u"""Class to access Account information."""
+
+    cdef:
+        slurm.assoc_mgr_info_request_msg_t _req
+        slurm.assoc_mgr_info_msg_t *_Assoc_ptr
+        dict AcctDict
+
+    def __cinit__(self):
+        self._Assoc_ptr = NULL
+        self.AcctDict = {}
+
+    def __dealloc__(self):
+        pass
+
+    def get(self):
+        return self.__get()
+
+    cdef __get(self):
+        u"""Get all slurm assoc information.
+
+        :returns: Dictionary of dictionaries whose key is the assoc name.
+        :rtype: `dict`
+        """
+        cdef:
+            int i
+            int listNum
+            int rc
+            int apiError
+            slurm.List assocList
+            slurm.ListIterator iters = NULL
+            dict _AssocDict = {}
+
+        if not self._req.flags:
+            self._req.flags = ASSOC_MGR_INFO_FLAG_ASSOC | ASSOC_MGR_INFO_FLAG_USERS | ASSOC_MGR_INFO_FLAG_QOS
+
+        rc = slurm.slurm_load_assoc_mgr_info(&self._req, &self._Assoc_ptr)
+        if rc != slurm.SLURM_SUCCESS:
+            apiError = slurm.slurm_get_errno()
+            raise ValueError(slurm.stringOrNone(slurm.slurm_strerror(apiError), ''), apiError)
+
+        assocList = self._Assoc_ptr.assoc_list
+        if assocList is not NULL:
+            listNum = slurm.slurm_list_count(assocList)
+            iters = slurm.slurm_list_iterator_create(assocList)
+        else:
+            listNum = 0
+
+        for i in range(listNum):
+            assoc = <slurm.slurmdb_assoc_rec_t *>slurm.slurm_list_next(iters)
+
+            assoc_info = {}
+            if assoc is not NULL:
+                assoc_id = assoc.id
+                assoc_info[u'acct'] = slurm.stringOrNone(assoc.acct, '')
+                assoc_info[u'cluster'] = slurm.stringOrNone(assoc.cluster, '')
+                assoc_info[u'def_qos_id'] = assoc.def_qos_id
+                assoc_info[u'grp_jobs'] = assoc.grp_jobs
+                assoc_info[u'grp_jobs_accrue'] = assoc.grp_jobs_accrue
+                assoc_info[u'grp_submit_jobs'] = assoc.grp_submit_jobs
+                assoc_info[u'grp_tres'] = slurm.stringOrNone(assoc.grp_tres, '')
+                assoc_info[u'grp_tres_mins'] = slurm.stringOrNone(assoc.grp_tres_mins, '')
+                assoc_info[u'grp_tres_run_mins'] = slurm.stringOrNone(assoc.grp_tres_run_mins, '')
+                assoc_info[u'grp_wall'] = assoc.grp_wall
+                assoc_info[u'id'] = assoc.id
+                assoc_info[u'is_def'] = assoc.is_def
+                assoc_info[u'lft'] = assoc.lft
+                assoc_info[u'max_jobs'] = assoc.max_jobs
+                assoc_info[u'max_jobs_acrue'] = assoc.max_jobs_accrue
+                assoc_info[u'max_submit_jobs'] = assoc.max_submit_jobs
+                assoc_info[u'max_tres_mins_pj'] = slurm.stringOrNone(assoc.max_tres_mins_pj, '')
+                assoc_info[u'max_tres_run_mins'] = slurm.stringOrNone(assoc.max_tres_run_mins, '')
+                assoc_info[u'max_tres_pj'] = slurm.stringOrNone(assoc.max_tres_pj, '')
+                assoc_info[u'max_tres_pn'] = slurm.stringOrNone(assoc.max_tres_pn, '')
+                assoc_info[u'max_wall_pj'] = assoc.max_wall_pj
+                assoc_info[u'min_prio_thresh'] = assoc.min_prio_thresh
+                assoc_info[u'parent_acct'] = slurm.stringOrNone(assoc.parent_acct, '')
+                assoc_info[u'parent_id'] = assoc.parent_id
+                assoc_info[u'partition'] = slurm.stringOrNone(assoc.partition, '')
+                assoc_info[u'priority'] = assoc.priority
+                assoc_info[u'rgt'] = assoc.rgt
+                assoc_info[u'shares_raw'] = assoc.shares_raw
+                assoc_info[u'uid'] = assoc.uid
+                assoc_info[u'user'] = slurm.stringOrNone(assoc.user, '')
+
+                assoc_info[u'usage'] = {
+                    u'accrue_cnt': assoc.usage.accrue_cnt,
+                    u'usage_raw': assoc.usage.usage_raw,
+                }
+
+                _AssocDict[assoc_id] = assoc_info
+
+        slurm.slurm_list_iterator_destroy(iters)
+        return _AssocDict
+
+
 #
 # slurmdbd jobs Class
 #

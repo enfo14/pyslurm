@@ -2459,10 +2459,11 @@ cdef extern from 'slurm/slurmdb.h' nogil:
         char *cluster
         uint32_t def_qos_id
         uint32_t grp_jobs
+        uint32_t grp_jobs_accrue
         uint32_t grp_submit_jobs
         char *grp_tres
         uint64_t *grp_tres_ctld
-        char *grp_tres_min
+        char *grp_tres_mins
         uint64_t *grp_tres_mins_ctld
         char *grp_tres_run_mins
         uint64_t *grp_tres_run_mins_ctld
@@ -2471,6 +2472,7 @@ cdef extern from 'slurm/slurmdb.h' nogil:
         uint16_t is_def
         uint32_t lft
         uint32_t max_jobs
+        uint32_t max_jobs_accrue
         uint32_t max_submit_jobs
         char *max_tres_mins_pj
         uint64_t *max_tres_mins_ctldi
@@ -2481,10 +2483,11 @@ cdef extern from 'slurm/slurmdb.h' nogil:
         char *max_tres_pn
         uint64_t *max_tres_pn_ctld
         uint32_t max_wall_pj
+        uint32_t min_prio_thresh
         char *parent_acct
         uint32_t parent_id
         char *partition
-        uint32_t *priority
+        uint32_t priority
         List qos_list
         uint32_t rgt
         uint32_t shares_raw
