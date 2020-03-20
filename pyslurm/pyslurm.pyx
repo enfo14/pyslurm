@@ -5417,9 +5417,29 @@ cdef class acct:
                 assoc_info[u'uid'] = assoc.uid
                 assoc_info[u'user'] = slurm.stringOrNone(assoc.user, '')
 
+                grp_node_job_cnt = assoc.usage.grp_node_job_cnt[0] if assoc.usage.grp_node_job_cnt is not NULL else 0
+                grp_used_tres = assoc.usage.grp_used_tres[0] if assoc.usage.grp_used_tres is not NULL else 0
+                grp_used_tres_run_secs = assoc.usage.grp_used_tres_run_secs[0] if assoc.usage.grp_used_tres_run_secs is not NULL else 0
+                usage_tres_raw = assoc.usage.usage_tres_raw[0] if assoc.usage.usage_tres_raw is not NULL else 0
+
                 assoc_info[u'usage'] = {
                     u'accrue_cnt': assoc.usage.accrue_cnt,
+                    u'grp_node_job_cnt': grp_node_job_cnt,
+                    u'grp_used_tres': grp_used_tres,
+                    u'grp_used_tres_run_secs': grp_used_tres_run_secs,
+                    u'grp_used_wall': assoc.usage.grp_used_wall,
+                    u'fs_factor': assoc.usage.fs_factor,
+                    u'level_shares': assoc.usage.level_shares,
+                    u'priority_norm': assoc.usage.priority_norm,
+                    u'shares_norm': assoc.usage.shares_norm,
+                    u'usage_efctv': assoc.usage.usage_efctv,
+                    u'usage_norm': assoc.usage.usage_norm,
                     u'usage_raw': assoc.usage.usage_raw,
+                    u'usage_tres_raw': usage_tres_raw,
+                    u'used_jobs': assoc.usage.used_jobs,
+                    u'used_submit_jobs': assoc.usage.used_submit_jobs,
+                    u'level_fs': assoc.usage.level_fs,
+                    # u'valid_qos': assoc.usage.valid_qos[0],
                 }
 
                 _AssocDict[assoc_id] = assoc_info
@@ -5474,7 +5494,7 @@ cdef class slurmdb_jobs:
             slurm.List JOBSList
             slurm.ListIterator iters = NULL
 
-       
+
         if clusters:
             self.job_cond.cluster_list = slurm.slurm_list_create(NULL)
             for _cluster in clusters:
@@ -5570,7 +5590,7 @@ cdef class slurmdb_jobs:
                 JOBS_info[u'start'] = job.start
                 JOBS_info[u'state'] = job.state
                 JOBS_info[u'state_str'] = slurm.stringOrNone(slurm.slurm_job_state_string(job.state), '')
-                
+
                 # TRES are reported as strings in the format `TRESID=value` where TRESID is one of:
                 # TRES_CPU=1, TRES_MEM=2, TRES_ENERGY=3, TRES_NODE=4, TRES_BILLING=5, TRES_FS_DISK=6, TRES_VMEM=7, TRES_PAGES=8
                 # Example: '1=0,2=745472,3=0,6=1949,7=7966720,8=0'
@@ -5592,7 +5612,7 @@ cdef class slurmdb_jobs:
                 stats[u'tres_usage_out_min'] = slurm.stringOrNone(job.stats.tres_usage_out_min, '')
                 stats[u'tres_usage_out_min_nodeid'] = slurm.stringOrNone(job.stats.tres_usage_out_min_nodeid, '')
                 stats[u'tres_usage_out_min_taskid'] = slurm.stringOrNone(job.stats.tres_usage_out_min_taskid, '')
-                stats[u'tres_usage_out_tot'] = slurm.stringOrNone(job.stats.tres_usage_out_tot, '')                       
+                stats[u'tres_usage_out_tot'] = slurm.stringOrNone(job.stats.tres_usage_out_tot, '')
 
                 # add job steps
                 JOBS_info[u'steps'] = {}
@@ -5609,10 +5629,10 @@ cdef class slurmdb_jobs:
                         step_info[u'elapsed'] = step.elapsed
                         step_info[u'end'] = step.end
                         step_info[u'exitcode'] = step.exitcode
-                        
-                        # Don't add this unless you want to create an endless recursive structure 
+
+                        # Don't add this unless you want to create an endless recursive structure
                         # step_info[u'job_ptr'] = JOBS_Info # job's record
-                        
+
                         step_info[u'nnodes'] = step.nnodes
                         step_info[u'nodes'] = slurm.stringOrNone(step.nodes, '')
                         step_info[u'ntasks'] = step.ntasks
@@ -5624,7 +5644,7 @@ cdef class slurmdb_jobs:
                         step_info[u'start'] = step.start
                         step_info[u'state'] = step.state
                         step_info[u'state_str'] = slurm.stringOrNone(slurm.slurm_job_state_string(step.state), '')
-                        
+
                         # TRES are reported as strings in the format `TRESID=value` where TRESID is one of:
                         # TRES_CPU=1, TRES_MEM=2, TRES_ENERGY=3, TRES_NODE=4, TRES_BILLING=5, TRES_FS_DISK=6, TRES_VMEM=7, TRES_PAGES=8
                         # Example: '1=0,2=745472,3=0,6=1949,7=7966720,8=0'
@@ -5646,8 +5666,8 @@ cdef class slurmdb_jobs:
                         stats[u'tres_usage_out_min'] = slurm.stringOrNone(step.stats.tres_usage_out_min, '')
                         stats[u'tres_usage_out_min_nodeid'] = slurm.stringOrNone(step.stats.tres_usage_out_min_nodeid, '')
                         stats[u'tres_usage_out_min_taskid'] = slurm.stringOrNone(step.stats.tres_usage_out_min_taskid, '')
-                        stats[u'tres_usage_out_tot'] = slurm.stringOrNone(step.stats.tres_usage_out_tot, '')                       
-                        
+                        stats[u'tres_usage_out_tot'] = slurm.stringOrNone(step.stats.tres_usage_out_tot, '')
+
                         step_info[u'stepid'] = step_id
                         step_info[u'stepname'] = slurm.stringOrNone(step.stepname, '')
                         step_info[u'suspended'] = step.suspended
